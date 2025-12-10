@@ -1,0 +1,38 @@
+{
+  "name": "photexx-studio",
+  "version": "1.0.0",
+  "description": "Professional Photo Editing & Album Management Studio",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win"
+  },
+  "keywords": ["photo", "editor", "album", "photoshop"],
+  "author": "Photexx Studio",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  },
+  "dependencies": {
+    "firebase": "^10.7.1",
+    "@electron/remote": "^2.1.0"
+  },
+  "build": {
+    "appId": "com.photexx.studio",
+    "productName": "Photexx Studio",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.graphics-design",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "target": ["nsis", "portable"]
+    }
+  }
+}

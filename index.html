@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photexx Studio - Login</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-drag-region"></div>
+        <div class="title-bar-buttons">
+            <button class="title-bar-button minimize" onclick="minimizeWindow()">
+                <svg width="12" height="2" viewBox="0 0 12 2">
+                    <rect width="12" height="2" rx="1"/>
+                </svg>
+            </button>
+            <button class="title-bar-button maximize" onclick="maximizeWindow()">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="1" y="1" width="10" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+            <button class="title-bar-button close" onclick="closeWindow()">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Login Page -->
+    <div class="login-container" id="loginPage">
+        <div class="login-glass-card">
+            <div class="logo-container">
+                <div class="logo-circle">
+                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                        <path d="M30 5L35 20L50 15L40 30L55 35L40 40L50 55L35 45L30 60L25 45L10 55L20 40L5 35L20 30L10 15L25 20L30 5Z" fill="url(#logo-gradient)"/>
+                        <defs>
+                            <linearGradient id="logo-gradient" x1="5" y1="5" x2="55" y2="55">
+                                <stop offset="0%" stop-color="#667eea"/>
+                                <stop offset="100%" stop-color="#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <h1 class="app-title">Photexx Studio</h1>
+                <p class="app-subtitle">Professional Photo Editing Suite</p>
+            </div>
+
+            <form class="login-form" onsubmit="handleLogin(event)">
+                <div class="input-group">
+                    <label for="email">E-posta</label>
+                    <input type="email" id="email" placeholder="firma@example.com" required autocomplete="email">
+                </div>
+
+                <div class="input-group">
+                    <label for="password">Şifre</label>
+                    <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+
+                <div class="forgot-password">
+                    <a href="#" onclick="return false;">Şifremi Unuttum</a>
+                </div>
+
+                <button type="submit" class="login-button" id="loginButton">
+                    <span class="button-text">Giriş Yap</span>
+                    <div class="button-loader" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </button>
+
+                <div class="error-message" id="errorMessage" style="display: none;"></div>
+            </form>
+
+            <div class="login-footer">
+                <p>Sadece firma hesapları giriş yapabilir</p>
+            </div>
+        </div>
+
+        <div class="background-blur"></div>
+    </div>
+
+    <!-- Dashboard Page (Hidden initially) -->
+    <div class="dashboard-container" id="dashboardPage" style="display: none;">
+        <div class="dashboard-sidebar">
+            <div class="sidebar-header">
+                <div class="logo-small">
+                    <svg width="30" height="30" viewBox="0 0 60 60" fill="none">
+                        <path d="M30 5L35 20L50 15L40 30L55 35L40 40L50 55L35 45L30 60L25 45L10 55L20 40L5 35L20 30L10 15L25 20L30 5Z" fill="url(#logo-gradient-small)"/>
+                        <defs>
+                            <linearGradient id="logo-gradient-small" x1="5" y1="5" x2="55" y2="55">
+                                <stop offset="0%" stop-color="#667eea"/>
+                                <stop offset="100%" stop-color="#764ba2"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <span class="sidebar-title">Photexx</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#" class="nav-item active">
+                    <span class="nav-icon">🏠</span>
+                    <span class="nav-text">Ana Sayfa</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">🖼️</span>
+                    <span class="nav-text">Projeler</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">📁</span>
+                    <span class="nav-text">Albümler</span>
+                </a>
+                <a href="#" class="nav-item">
+                    <span class="nav-icon">⚙️</span>
+                    <span class="nav-text">Ayarlar</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info" id="userInfo">
+                    <div class="user-avatar">
+                        <span id="userInitials">FU</span>
+                    </div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Firma User</div>
+                        <div class="user-email" id="userEmail">firma@example.com</div>
+                    </div>
+                </div>
+                <button class="logout-button" onclick="handleLogout()">
+                    <span>Çıkış</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M6 14H3C2.44772 14 2 13.5523 2 13V3C2 2.44772 2.44772 2 3 2H6M11 11L14 8M14 8L11 5M14 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="dashboard-main">
+            <div class="dashboard-header">
+                <div class="header-left">
+                    <h2>Hoş Geldiniz</h2>
+                    <p>Projenize başlamak için hazırsınız</p>
+                </div>
+                <button class="create-project-btn" onclick="openProjectWizard()">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M10 4V16M4 10H16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <span>Proje Oluştur</span>
+                </button>
+            </div>
+
+            <div class="dashboard-content">
+                <div class="projects-grid" id="projectsGrid">
+                    <div class="welcome-card">
+                        <h3>🎨 Dashboard Hazır!</h3>
+                        <p>Yeni bir proje oluşturmak için "Proje Oluştur" butonuna tıklayın.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Project Creation Wizard Modal -->
+    <div class="modal-overlay" id="projectWizardModal" style="display: none;">
+        <div class="wizard-modal">
+            <div class="wizard-header">
+                <h2 id="wizardTitle">Yeni Proje Oluştur</h2>
+                <button class="close-modal-btn" onclick="closeProjectWizard()">
+                    <svg width="20" height="20" viewBox="0 0 20 20">
+                        <path d="M4 4L16 16M16 4L4 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Step 1: Album Name -->
+            <div class="wizard-step" id="step1" style="display: block;">
+                <div class="step-indicator">
+                    <span class="step-number active">1</span>
+                    <span class="step-number">2</span>
+                    <span class="step-number">3</span>
+                    <span class="step-number">4</span>
+                </div>
+                
+                <div class="wizard-content">
+                    <div class="wizard-icon">📁</div>
+                    <h3>Albüm Adı</h3>
+                    <p>Projenize bir isim verin</p>
+                    <input type="text" id="albumName" class="wizard-input" placeholder="Örn: Düğün Fotoğrafları 2025" autofocus>
+                </div>
+
+                <div class="wizard-actions">
+                    <button class="wizard-btn secondary" onclick="closeProjectWizard()">İptal</button>
+                    <button class="wizard-btn primary" onclick="nextStep(2)">İleri</button>
+                </div>
+            </div>
+
+            <!-- Step 2: File Type -->
+            <div class="wizard-step" id="step2" style="display: none;">
+                <div class="step-indicator">
+                    <span class="step-number completed">✓</span>
+                    <span class="step-number active">2</span>
+                    <span class="step-number">3</span>
+                    <span class="step-number">4</span>
+                </div>
+                
+                <div class="wizard-content">
+                    <div class="wizard-icon">🖼️</div>
+                    <h3>Dosya Tipi</h3>
+                    <p>Hangi formatta çalışmak istiyorsunuz?</p>
+                    
+                    <div class="file-type-options">
+                        <div class="file-type-card" onclick="selectFileType('raw')">
+                            <div class="file-type-icon">📷</div>
+                            <h4>RAW Dosyalar</h4>
+                            <p>CR2, NEF, ARW, DNG, ORF</p>
+                            <span class="recommended">Önerilen</span>
+                        </div>
+                        <div class="file-type-card" onclick="selectFileType('jpg')">
+                            <div class="file-type-icon">🖼️</div>
+                            <h4>JPG/JPEG</h4>
+                            <p>Standart resim formatı</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="wizard-actions">
+                    <button class="wizard-btn secondary" onclick="prevStep(1)">Geri</button>
+                    <button class="wizard-btn primary" id="fileTypeNext" onclick="nextStep(3)" disabled>İleri</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Upload Photos -->
+            <div class="wizard-step" id="step3" style="display: none;">
+                <div class="step-indicator">
+                    <span class="step-number completed">✓</span>
+                    <span class="step-number completed">✓</span>
+                    <span class="step-number active">3</span>
+                    <span class="step-number">4</span>
+                </div>
+                
+                <div class="wizard-content">
+                    <div class="wizard-icon">📤</div>
+                    <h3>Fotoğraf Yükle</h3>
+                    <p id="uploadDescription">RAW dosyalarınızı seçin</p>
+                    
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                        <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                            <path d="M30 15V45M15 30H45" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                        <p>Dosya seçmek için tıklayın veya sürükleyip bırakın</p>
+                        <span class="file-types" id="acceptedTypes">RAW, CR2, NEF, ARW, DNG, ORF</span>
+                    </div>
+                    <input type="file" id="fileInput" multiple accept=".raw,.cr2,.nef,.arw,.dng,.orf,.RAW,.CR2,.NEF,.ARW,.DNG,.ORF,.jpg,.jpeg,.JPG,.JPEG" style="display: none;" onchange="handleFileSelect(event)">
+                    
+                    <div class="upload-progress" id="uploadProgress" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                        </div>
+                        <p id="uploadStatus">Yükleniyor...</p>
+                    </div>
+
+                    <div class="uploaded-files" id="uploadedFiles"></div>
+                </div>
+
+                <div class="wizard-actions">
+                    <button class="wizard-btn secondary" onclick="prevStep(2)">Geri</button>
+                    <button class="wizard-btn primary" id="uploadNext" onclick="nextStep(4)">İleri</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Summary -->
+            <div class="wizard-step" id="step4" style="display: none;">
+                <div class="step-indicator">
+                    <span class="step-number completed">✓</span>
+                    <span class="step-number completed">✓</span>
+                    <span class="step-number completed">✓</span>
+                    <span class="step-number active">4</span>
+                </div>
+                
+                <div class="wizard-content">
+                    <div class="wizard-icon">✨</div>
+                    <h3>Proje Özeti</h3>
+                    
+                    <div class="project-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Albüm Adı:</span>
+                            <span class="summary-value" id="summaryAlbumName">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Dosya Tipi:</span>
+                            <span class="summary-value" id="summaryFileType">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Fotoğraf Sayısı:</span>
+                            <span class="summary-value" id="summaryPhotoCount">-</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Toplam Boyut:</span>
+                            <span class="summary-value" id="summaryTotalSize">-</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-note">
+                        <p>⚡ Projeniz düzenleme modunda açılacak</p>
+                    </div>
+                </div>
+
+                <div class="wizard-actions">
+                    <button class="wizard-btn secondary" onclick="prevStep(3)">Geri</button>
+                    <button class="wizard-btn primary success" onclick="createProject()">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path d="M4 10L8 14L16 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span>Oluştur</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+    <script src="project-wizard.js"></script>
+</body>
+</html>

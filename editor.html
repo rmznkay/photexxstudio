@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Editor - Photexx Studio</title>
+    <link rel="stylesheet" href="editor-styles.css">
+</head>
+<body>
+    <!-- Custom Title Bar -->
+    <div class="title-bar">
+        <div class="title-bar-drag-region"></div>
+        <div class="title-bar-title" id="projectTitle">Proje Düzenleme</div>
+        <div class="title-bar-buttons">
+            <button class="title-bar-button minimize" onclick="minimizeWindow()">
+                <svg width="12" height="2" viewBox="0 0 12 2">
+                    <rect width="12" height="2" rx="1"/>
+                </svg>
+            </button>
+            <button class="title-bar-button maximize" onclick="maximizeWindow()">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="1" y="1" width="10" height="10" rx="1" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+            <button class="title-bar-button close" onclick="closeWindow()">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="editor-container">
+        <!-- Left Sidebar - Presets -->
+        <div class="left-sidebar">
+            <div class="sidebar-section">
+                <h3>🎨 Preset'ler</h3>
+                <div class="preset-list">
+                    <!-- Presets will be loaded dynamically from XMP files -->
+                    <p style="color: #888; font-size: 13px; padding: 10px;">
+                        📁 presets/ klasörüne XMP dosyalarınızı ekleyin
+                    </p>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>⚡ Hızlı İşlemler</h3>
+                <button class="action-btn" onclick="resetAdjustments()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M14 8A6 6 0 1 1 2 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        <path d="M2 4v4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Sıfırla</span>
+                </button>
+                <button class="action-btn" onclick="exportCurrent()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M14 10v3a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-3M8 2v8m0 0 3-3m-3 3L5 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span>Dışa Aktar</span>
+                </button>
+                <button class="action-btn primary" onclick="exportAll()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 8h12M8 2v12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    </svg>
+                    <span>Tümünü Dışa Aktar</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Center - Main Image -->
+        <div class="center-area">
+            <div class="image-viewport">
+                <div class="image-container" id="imageContainer">
+                    <img id="mainImage" src="" alt="Main Image">
+                    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+                        <div class="spinner-large"></div>
+                        <p>İşleniyor...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Thumbnails -->
+            <div class="thumbnails-strip">
+                <button class="scroll-btn left" onclick="scrollThumbnails(-1)">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M12 4L6 10L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                
+                <div class="thumbnails-container" id="thumbnailsContainer">
+                    <!-- Thumbnails will be loaded here -->
+                </div>
+                
+                <button class="scroll-btn right" onclick="scrollThumbnails(1)">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <path d="M8 4L14 10L8 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Sidebar - Color Adjustments -->
+        <div class="right-sidebar">
+            <div class="sidebar-header">
+                <h3>⚙️ Renk Düzenleme</h3>
+            </div>
+
+            <div class="adjustments-panel">
+                <!-- Light -->
+                <div class="adjustment-group">
+                    <h4>💡 Işık</h4>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Pozlama</span>
+                            <span class="slider-value" id="exposureValue">0</span>
+                        </label>
+                        <input type="range" id="exposure" min="-5" max="5" step="0.1" value="0" oninput="updateAdjustment('exposure', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Kontrast</span>
+                            <span class="slider-value" id="contrastValue">0</span>
+                        </label>
+                        <input type="range" id="contrast" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('contrast', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Highlights</span>
+                            <span class="slider-value" id="highlightsValue">0</span>
+                        </label>
+                        <input type="range" id="highlights" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('highlights', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Shadows</span>
+                            <span class="slider-value" id="shadowsValue">0</span>
+                        </label>
+                        <input type="range" id="shadows" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('shadows', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Whites</span>
+                            <span class="slider-value" id="whitesValue">0</span>
+                        </label>
+                        <input type="range" id="whites" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('whites', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Blacks</span>
+                            <span class="slider-value" id="blacksValue">0</span>
+                        </label>
+                        <input type="range" id="blacks" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('blacks', this.value)">
+                    </div>
+                </div>
+
+                <!-- Color -->
+                <div class="adjustment-group">
+                    <h4>🎨 Renk</h4>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Vibrance</span>
+                            <span class="slider-value" id="vibranceValue">0</span>
+                        </label>
+                        <input type="range" id="vibrance" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('vibrance', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Doygunluk</span>
+                            <span class="slider-value" id="saturationValue">0</span>
+                        </label>
+                        <input type="range" id="saturation" min="-100" max="100" step="1" value="0" oninput="updateAdjustment('saturation', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Sıcaklık</span>
+                            <span class="slider-value" id="temperatureValue">0</span>
+                        </label>
+                        <input type="range" id="temperature" min="-50" max="50" step="2" value="0" oninput="updateAdjustment('temperature', this.value)">
+                    </div>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Ton</span>
+                            <span class="slider-value" id="tintValue">0</span>
+                        </label>
+                        <input type="range" id="tint" min="-50" max="50" step="2" value="0" oninput="updateAdjustment('tint', this.value)">
+                    </div>
+                </div>
+
+                <!-- Detail -->
+                <div class="adjustment-group">
+                    <h4>🔍 Detay</h4>
+                    
+                    <div class="slider-control">
+                        <label>
+                            <span>Keskinlik</span>
+                            <span class="slider-value" id="sharpnessValue">40</span>
+                        </label>
+                        <input type="range" id="sharpness" min="0" max="150" step="1" value="40" oninput="updateAdjustment('sharpness', this.value)">
+                    </div>
+                </div>
+
+                <!-- Info -->
+                <div class="image-info">
+                    <div class="info-item">
+                        <span class="info-label">Dosya:</span>
+                        <span class="info-value" id="fileName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Boyut:</span>
+                        <span class="info-value" id="fileSize">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tip:</span>
+                        <span class="info-value" id="fileType">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="editor.js"></script>
+</body>
+</html>
