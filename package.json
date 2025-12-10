@@ -27,6 +27,20 @@
     "directories": {
       "output": "dist"
     },
+    "files": [
+      "**/*",
+      "!backend/uploads/**",
+      "!backend/processed/**",
+      "!backend/__pycache__/**",
+      "!backend/*.pyc"
+    ],
+    "extraResources": [
+      {
+        "from": "backend/dist",
+        "to": "backend",
+        "filter": ["**/*"]
+      }
+    ],
     "mac": {
       "category": "public.app-category.graphics-design",
       "target": ["dmg", "zip"]

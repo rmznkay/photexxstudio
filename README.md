@@ -1,47 +1,108 @@
-# Photexx Studio
+# 📸 Photexx Studio
 
-Professional Photo Editing & Album Management Suite
+Professional Photo Editing & Album Management Studio with Lightroom-style presets.
 
-## Özellikler
+## ✨ Features
 
-✨ **Modern UI** - Buzlu iOS/Apple tarzı glassmorphic arayüz
-🔐 **Firebase Auth** - Güvenli firma kullanıcı girişi
-🖥️ **Cross-Platform** - Windows & macOS desteği
-⚡ **Electron** - Hızlı ve native desktop deneyimi
+- 🎨 **Lightroom XMP Presets** - Import and apply Adobe Lightroom presets
+- 🖼️ **RAW Support** - Full RAW image processing (NEF, CR2, ARW, etc.)
+- 📁 **Album Management** - Organize photos in projects
+- ⚡ **Real-time Preview** - Instant adjustment feedback
+- 🔧 **Advanced Color Adjustments**:
+  - Exposure, Contrast, Highlights, Shadows
+  - Whites, Blacks, Vibrance, Saturation
+  - Temperature, Tint, Sharpness
+- 🖥️ **Cross-Platform** - Windows, macOS & Linux
 
-## Kurulum
+## 🚀 Installation
+
+### Mac
+1. Download `Photexx-Studio.dmg` from [Releases](https://github.com/rmznkay/photexxstudio/releases)
+2. Open the DMG file
+3. Drag Photexx Studio to Applications
+
+### Windows
+1. Download `Photexx-Studio-Setup.exe` from [Releases](https://github.com/rmznkay/photexxstudio/releases)
+2. Run the installer
+3. Follow the installation wizard
+
+### Linux
+1. Download `Photexx-Studio.AppImage` from [Releases](https://github.com/rmznkay/photexxstudio/releases)
+2. Make it executable: `chmod +x Photexx-Studio.AppImage`
+3. Run the AppImage
+
+## 🛠️ Development
 
 ```bash
-# Bağımlılıkları yükle
+# Clone repository
+git clone https://github.com/rmznkay/photexxstudio.git
+cd photexxstudio
+
+# Install Node dependencies
 npm install
 
-# Uygulamayı başlat
-npm start
+# Install Python dependencies
+cd backend
+pip install -r requirements.txt
+cd ..
 
-# Development mode
+# Start backend server
+cd backend
+python server.py
+
+# Start app (in new terminal)
 npm run dev
 ```
 
-## Yapı
+## 📦 Build
 
+```bash
+# Build for all platforms
+npm run build:all
+
+# Build for Mac (macOS only)
+npm run build:mac
+
+# Build for Windows
+npm run build:win
+
+# Build for Linux
+npm run build:linux
 ```
-Photexx Studio/
-├── main.js              # Electron ana dosya
-├── index.html           # Ana UI
-├── styles.css           # Buzlu Apple UI stilleri
-├── app.js               # Frontend logic
-├── firebase-config.js   # Firebase yapılandırma
-└── package.json         # Bağımlılıklar
-```
 
-## Firebase Yapılandırması
+## 📝 Requirements
 
-- Sadece `firma` field'ı olan kullanıcılar giriş yapabilir
-- `users` koleksiyonunda firma kontrolü yapılır
+- **Python 3.8+** - Backend image processing
+- **Node.js 18+** - Electron app
+- **Python packages**: Flask, Pillow, opencv-python, numpy, rawpy
 
-## Teknolojiler
+## 🎯 Usage
 
-- Electron 28
-- Firebase 10.7
-- Modern ES6+ JavaScript
-- Glassmorphic UI Design
+1. Launch Photexx Studio
+2. Create a new project or open existing
+3. Import photos (JPG, PNG, RAW formats)
+4. Apply Lightroom XMP presets or adjust manually
+5. Export edited photos
+
+## 📚 Adding Presets
+
+1. Place `.xmp` files in the `presets/` folder
+2. Presets automatically appear in the editor
+3. Click a preset to apply all adjustments
+
+## 🏗️ Technologies
+
+- **Electron 28** - Desktop framework
+- **Python + Flask** - Image processing backend
+- **Pillow + OpenCV** - Image manipulation
+- **rawpy** - RAW file support
+- **Firebase** - Authentication
+- **GitHub Actions** - Automated builds
+
+## 📄 License
+
+MIT
+
+## 👨‍💻 Author
+
+Photexx Studio Team
