@@ -269,6 +269,7 @@ def upload_file():
                 file_info = {
                     'filename': filename,
                     'path': filepath,
+                    'previewUrl': f'/image/{filename}',
                     'type': 'raw' if is_raw_file(filename) else 'jpg'
                 }
                 
