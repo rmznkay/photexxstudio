@@ -19,6 +19,14 @@ import re
 import sys
 import logging
 
+# Try to import darktable processor
+try:
+    from darktable_processor import check_darktable, process_with_darktable, get_darktable_version
+    DARKTABLE_AVAILABLE = check_darktable()
+except ImportError:
+    DARKTABLE_AVAILABLE = False
+    logger.warning("Darktable processor module not available")
+
 # Configure logging for standalone mode
 logging.basicConfig(
     level=logging.INFO,
@@ -403,7 +411,15 @@ def apply_adjustments(img, adjustments):
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({'status': 'ok', 'message': 'Photexx Backend is running'})
+    status = {
+        'status': 'ok',
+        'message': 'Photexx Backend is running',
+        'darktable': {
+            'available': DARKTABLE_AVAILABLE,
+            'version': get_darktable_version() if DARKTABLE_AVAILABLE else None
+        }
+    }
+    return jsonify(status)
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -563,7 +579,7 @@ def get_preset(preset_name):
 
 @app.route('/preset/apply', methods=['POST'])
 def apply_preset():
-    """Apply preset to current image"""
+    """Apply preset to current image using darktable if available"""
     try:
         data = request.json
         preset_name = data.get('preset')
@@ -577,13 +593,38 @@ def apply_preset():
         if not os.path.exists(preset_path):
             return jsonify({'error': 'Preset not found'}), 404
         
-        adjustments = parse_xmp_preset(preset_path)
-        logger.info(f"Applying preset {preset_name} with adjustments: {adjustments}")
-        
-        # Load and process image
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         if not os.path.exists(filepath):
             return jsonify({'error': 'File not found'}), 404
+        
+        # Try darktable first for RAW files
+        if DARKTABLE_AVAILABLE and is_raw_file(filename):
+            logger.info(f"Using darktable-cli for {filename} with preset {preset_name}")
+            
+            output_path = os.path.join(app.config['PROCESSED_FOLDER'], f'dt_{filename}.jpg')
+            
+            if process_with_darktable(filepath, output_path, preset_path):
+                # Read processed image
+                with open(output_path, 'rb') as f:
+                    img_data = f.read()
+                
+                img_base64 = base64.b64encode(img_data).decode('utf-8')
+                
+                # Parse adjustments for UI update
+                adjustments = parse_xmp_preset(preset_path)
+                
+                return jsonify({
+                    'success': True,
+                    'image': f'data:image/jpeg;base64,{img_base64}',
+                    'adjustments': adjustments,
+                    'processor': 'darktable'
+                })
+            else:
+                logger.warning("Darktable processing failed, falling back to custom processor")
+        
+        # Fallback to custom processing
+        adjustments = parse_xmp_preset(preset_path)
+        logger.info(f"Using custom processor for {filename}")
         
         img = load_image(filepath)
         img = apply_adjustments(img, adjustments)
@@ -600,7 +641,8 @@ def apply_preset():
         return jsonify({
             'success': True,
             'image': f'data:image/jpeg;base64,{img_base64}',
-            'adjustments': adjustments
+            'adjustments': adjustments,
+            'processor': 'custom'
         })
         
     except Exception as e:
