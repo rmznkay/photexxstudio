@@ -43,7 +43,8 @@ def get_base_path():
 BASE_PATH = get_base_path()
 UPLOAD_FOLDER = os.path.join(os.path.expanduser('~'), '.photexx', 'uploads')
 PROCESSED_FOLDER = os.path.join(os.path.expanduser('~'), '.photexx', 'processed')
-PRESETS_FOLDER = os.path.join(os.path.expanduser('~'), '.photexx', 'presets')
+# Presets folder - use project directory (one level up from backend)
+PRESETS_FOLDER = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'presets')
 ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'raw', 'cr2', 'nef', 'arw', 'dng', 'orf'}
 
 # Create directories
