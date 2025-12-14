@@ -393,6 +393,52 @@ def get_preset(preset_name):
         logger.error(f"Error loading preset: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+@app.route('/preset/apply', methods=['POST'])
+def apply_preset():
+    """Apply preset to current image"""
+    try:
+        data = request.json
+        preset_name = data.get('preset')
+        filename = data.get('filename')
+        
+        if not preset_name or not filename:
+            return jsonify({'error': 'Missing preset or filename'}), 400
+        
+        # Load preset
+        preset_path = os.path.join(app.config['PRESETS_FOLDER'], preset_name)
+        if not os.path.exists(preset_path):
+            return jsonify({'error': 'Preset not found'}), 404
+        
+        adjustments = parse_xmp_preset(preset_path)
+        logger.info(f"Applying preset {preset_name} with adjustments: {adjustments}")
+        
+        # Load and process image
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if not os.path.exists(filepath):
+            return jsonify({'error': 'File not found'}), 404
+        
+        img = load_image(filepath)
+        img = apply_adjustments(img, adjustments)
+        
+        # Return processed image
+        output = io.BytesIO()
+        if img.mode == 'RGBA':
+            img = img.convert('RGB')
+        img.save(output, format='JPEG', quality=85)
+        output.seek(0)
+        
+        img_base64 = base64.b64encode(output.getvalue()).decode('utf-8')
+        
+        return jsonify({
+            'success': True,
+            'image': f'data:image/jpeg;base64,{img_base64}',
+            'adjustments': adjustments
+        })
+        
+    except Exception as e:
+        logger.error(f"Error applying preset: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/project', methods=['POST'])
 @app.route('/project/create', methods=['POST'])
 def create_project():
