@@ -248,7 +248,7 @@ async function loadPresets() {
         }
         
         const data = await response.json();
-        console.log(`Loaded ${data.count} presets:`, data.presets);
+        console.log('Loaded undefined presets:', data.presets);
         
         // Update preset list in UI
         const presetList = document.querySelector('.preset-list');
@@ -258,18 +258,19 @@ async function loadPresets() {
         presetList.innerHTML = '';
         
         // Add presets from XMP files
-        data.presets.forEach(preset => {
+        data.presets.forEach(presetFile => {
             const presetDiv = document.createElement('div');
             presetDiv.className = 'preset-item';
-            presetDiv.onclick = () => applyPreset(preset.name);
+            presetDiv.onclick = () => applyPreset(presetFile);
             
-            // Create preview (you can enhance this later)
+            // Create preview
             const previewDiv = document.createElement('div');
             previewDiv.className = 'preset-preview';
             previewDiv.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
             
             const nameSpan = document.createElement('span');
-            nameSpan.textContent = preset.name;
+            // Remove .xmp extension for display
+            nameSpan.textContent = presetFile.replace('.xmp', '');
             
             presetDiv.appendChild(previewDiv);
             presetDiv.appendChild(nameSpan);
