@@ -323,6 +323,7 @@ def adjust_image():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/presets', methods=['GET'])
+@app.route('/presets/list', methods=['GET'])
 def list_presets():
     """List all available XMP presets"""
     try:
@@ -334,6 +335,38 @@ def list_presets():
         return jsonify({'presets': presets})
     except Exception as e:
         logger.error(f"Error listing presets: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/image/<filename>', methods=['GET'])
+@app.route('/preview/<filename>', methods=['GET'])
+def get_image(filename):
+    """Get image file"""
+    try:
+        # Try upload folder first
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if os.path.exists(filepath):
+            # Load and return as JPEG
+            img = load_image(filepath)
+            
+            # Resize for preview
+            max_width = 1920
+            if img.width > max_width:
+                ratio = max_width / img.width
+                new_height = int(img.height * ratio)
+                img = img.resize((max_width, new_height), Image.Resampling.LANCZOS)
+            
+            output = io.BytesIO()
+            if img.mode == 'RGBA':
+                img = img.convert('RGB')
+            img.save(output, format='JPEG', quality=85)
+            output.seek(0)
+            
+            return send_file(output, mimetype='image/jpeg')
+        
+        return jsonify({'error': 'File not found'}), 404
+        
+    except Exception as e:
+        logger.error(f"Error serving image: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
 @app.route('/preset/<preset_name>', methods=['GET'])
