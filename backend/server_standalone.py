@@ -238,38 +238,49 @@ def health_check():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    """Upload and process image"""
+    """Upload multiple files for a project"""
     try:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file provided'}), 400
+        if 'files' not in request.files:
+            logger.error('No files in request')
+            return jsonify({'error': 'No files provided'}), 400
         
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'No file selected'}), 400
+        files = request.files.getlist('files')
+        project_id = request.form.get('projectId')
         
-        if not allowed_file(file.filename):
-            return jsonify({'error': 'Invalid file type'}), 400
+        if not project_id:
+            logger.error('No projectId provided')
+            return jsonify({'error': 'No project ID provided'}), 400
         
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
+        if project_id not in projects:
+            logger.error(f'Project not found: {project_id}')
+            return jsonify({'error': 'Project not found'}), 404
         
-        logger.info(f"File uploaded: {filename}")
+        logger.info(f'Uploading {len(files)} files for project {project_id}')
+        uploaded_files = []
         
-        img = load_image(filepath)
+        for file in files:
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(filepath)
+                
+                logger.info(f"File uploaded: {filename}")
+                
+                file_info = {
+                    'filename': filename,
+                    'path': filepath,
+                    'type': 'raw' if is_raw_file(filename) else 'jpg'
+                }
+                
+                projects[project_id]['images'].append(file_info)
+                uploaded_files.append(file_info)
         
-        output = io.BytesIO()
-        if img.mode == 'RGBA':
-            img = img.convert('RGB')
-        img.save(output, format='JPEG', quality=95)
-        output.seek(0)
-        
-        img_base64 = base64.b64encode(output.getvalue()).decode('utf-8')
+        logger.info(f'✅ Uploaded {len(uploaded_files)} files')
         
         return jsonify({
             'success': True,
-            'filename': filename,
-            'image': f'data:image/jpeg;base64,{img_base64}'
+            'uploaded': len(uploaded_files),
+            'files': uploaded_files
         })
         
     except Exception as e:
