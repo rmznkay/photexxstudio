@@ -301,16 +301,17 @@ def apply_adjustments(img, adjustments):
                 mask_range = ((h >= hue_min) & (h <= hue_max)).astype(np.float32)
                 mask = np.maximum(mask, mask_range)
             
+            # Apply adjustments MUCH more gently (Lightroom uses subtle changes)
             if hue_shift != 0:
-                h = np.where(mask > 0, h + (hue_shift * mask * 0.5), h)
+                h = np.where(mask > 0, h + (hue_shift * mask * 0.1), h)  # Reduced from 0.5 to 0.1
                 h = np.clip(h, 0, 180)
             
             if sat_shift != 0:
-                s = np.where(mask > 0, s * (1 + sat_shift / 100.0 * mask), s)
+                s = np.where(mask > 0, s * (1 + sat_shift / 100.0 * mask * 0.3), s)  # Added 0.3 factor
                 s = np.clip(s, 0, 255)
             
             if lum_shift != 0:
-                v = np.where(mask > 0, v + (lum_shift * 1.5 * mask), v)
+                v = np.where(mask > 0, v + (lum_shift * 0.3 * mask), v)  # Reduced from 1.5 to 0.3
                 v = np.clip(v, 0, 255)
         
         # Contrast
