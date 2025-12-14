@@ -71,6 +71,7 @@ def parse_xmp_preset(xmp_path):
         
         adjustments = {}
         
+        # Basic adjustments
         params = {
             'Exposure2012': 'exposure',
             'Contrast2012': 'contrast',
@@ -78,11 +79,53 @@ def parse_xmp_preset(xmp_path):
             'Shadows2012': 'shadows',
             'Whites2012': 'whites',
             'Blacks2012': 'blacks',
+            'Texture': 'texture',
+            'Clarity2012': 'clarity',
+            'Dehaze': 'dehaze',
             'Vibrance': 'vibrance',
             'Saturation': 'saturation',
-            'Temperature': 'temperature',
-            'Tint': 'tint',
-            'Sharpness': 'sharpness'
+            'IncrementalTemperature': 'temperature',
+            'IncrementalTint': 'tint',
+            'Sharpness': 'sharpness',
+            # HSL - Hue
+            'HueAdjustmentRed': 'hue_red',
+            'HueAdjustmentOrange': 'hue_orange',
+            'HueAdjustmentYellow': 'hue_yellow',
+            'HueAdjustmentGreen': 'hue_green',
+            'HueAdjustmentAqua': 'hue_aqua',
+            'HueAdjustmentBlue': 'hue_blue',
+            'HueAdjustmentPurple': 'hue_purple',
+            'HueAdjustmentMagenta': 'hue_magenta',
+            # HSL - Saturation
+            'SaturationAdjustmentRed': 'sat_red',
+            'SaturationAdjustmentOrange': 'sat_orange',
+            'SaturationAdjustmentYellow': 'sat_yellow',
+            'SaturationAdjustmentGreen': 'sat_green',
+            'SaturationAdjustmentAqua': 'sat_aqua',
+            'SaturationAdjustmentBlue': 'sat_blue',
+            'SaturationAdjustmentPurple': 'sat_purple',
+            'SaturationAdjustmentMagenta': 'sat_magenta',
+            # HSL - Luminance
+            'LuminanceAdjustmentRed': 'lum_red',
+            'LuminanceAdjustmentOrange': 'lum_orange',
+            'LuminanceAdjustmentYellow': 'lum_yellow',
+            'LuminanceAdjustmentGreen': 'lum_green',
+            'LuminanceAdjustmentAqua': 'lum_aqua',
+            'LuminanceAdjustmentBlue': 'lum_blue',
+            'LuminanceAdjustmentPurple': 'lum_purple',
+            'LuminanceAdjustmentMagenta': 'lum_magenta',
+            # Split Toning
+            'SplitToningShadowHue': 'split_shadow_hue',
+            'SplitToningShadowSaturation': 'split_shadow_sat',
+            'SplitToningHighlightHue': 'split_highlight_hue',
+            'SplitToningHighlightSaturation': 'split_highlight_sat',
+            # Calibration
+            'RedHue': 'cal_red_hue',
+            'RedSaturation': 'cal_red_sat',
+            'GreenHue': 'cal_green_hue',
+            'GreenSaturation': 'cal_green_sat',
+            'BlueHue': 'cal_blue_hue',
+            'BlueSaturation': 'cal_blue_sat',
         }
         
         for xmp_key, adj_key in params.items():
@@ -90,12 +133,15 @@ def parse_xmp_preset(xmp_path):
             match = re.search(pattern, content)
             if match:
                 value = match.group(1)
+                # Remove + sign if present
+                if value.startswith('+'):
+                    value = value[1:]
                 try:
                     adjustments[adj_key] = float(value)
                 except ValueError:
-                    adjustments[adj_key] = value
+                    adjustments[adj_key] = 0
         
-        logger.info(f"Parsed preset values: {adjustments}")
+        logger.info(f"Parsed preset with {len(adjustments)} parameters")
         return adjustments
         
     except Exception as e:
@@ -148,10 +194,11 @@ def load_image(filepath):
         raise
 
 def apply_adjustments(img, adjustments):
-    """Apply Lightroom-style adjustments to image"""
+    """Apply Lightroom-style adjustments to image with full HSL support"""
     try:
         img_array = np.array(img).astype(np.float32) / 255.0
         
+        # Basic parameters
         exposure = adjustments.get('exposure', 0) / 5.0
         contrast = adjustments.get('contrast', 0) / 100.0
         saturation = adjustments.get('saturation', 0) / 100.0
@@ -159,28 +206,36 @@ def apply_adjustments(img, adjustments):
         sharpness = adjustments.get('sharpness', 40)
         temperature = adjustments.get('temperature', 0)
         tint = adjustments.get('tint', 0)
+        texture = adjustments.get('texture', 0) / 100.0
+        clarity = adjustments.get('clarity', 0) / 100.0
+        dehaze = adjustments.get('dehaze', 0) / 100.0
         
         highlights = adjustments.get('highlights', 0) / 100.0
         shadows = adjustments.get('shadows', 0) / 100.0
         whites = adjustments.get('whites', 0) / 100.0
         blacks = adjustments.get('blacks', 0) / 100.0
         
+        # Apply exposure
         if exposure != 0:
             img_array = np.clip(img_array * (2.0 ** exposure), 0, 1)
         
+        # Apply temperature
         if temperature != 0:
             temp_factor = temperature / 100.0
             img_array[:, :, 0] = np.clip(img_array[:, :, 0] * (1 + temp_factor * 0.3), 0, 1)
             img_array[:, :, 2] = np.clip(img_array[:, :, 2] * (1 - temp_factor * 0.3), 0, 1)
         
+        # Apply tint
         if tint != 0:
             tint_factor = tint / 100.0
             img_array[:, :, 1] = np.clip(img_array[:, :, 1] * (1 + tint_factor * 0.2), 0, 1)
         
+        # Convert to HSV for tone/color adjustments
         img_uint8 = (img_array * 255).astype(np.uint8)
         img_hsv = cv2.cvtColor(img_uint8, cv2.COLOR_RGB2HSV).astype(np.float32)
         h, s, v = cv2.split(img_hsv)
         
+        # Tone adjustments
         if shadows != 0:
             shadow_mask = (v < 85).astype(np.float32)
             shadow_mask = cv2.GaussianBlur(shadow_mask, (21, 21), 0)
@@ -203,25 +258,137 @@ def apply_adjustments(img, adjustments):
         
         v = np.clip(v, 0, 255)
         
+        # HSL Color Adjustments - Apply to specific hue ranges
+        # Red: 0-10, 350-360 (wrap around)
+        # Orange: 11-35
+        # Yellow: 36-65
+        # Green: 66-165
+        # Aqua: 166-200
+        # Blue: 201-260
+        # Purple: 261-290
+        # Magenta: 291-349
+        
+        hsl_adjustments = {
+            'red': (adjustments.get('hue_red', 0), adjustments.get('sat_red', 0), adjustments.get('lum_red', 0)),
+            'orange': (adjustments.get('hue_orange', 0), adjustments.get('sat_orange', 0), adjustments.get('lum_orange', 0)),
+            'yellow': (adjustments.get('hue_yellow', 0), adjustments.get('sat_yellow', 0), adjustments.get('lum_yellow', 0)),
+            'green': (adjustments.get('hue_green', 0), adjustments.get('sat_green', 0), adjustments.get('lum_green', 0)),
+            'aqua': (adjustments.get('hue_aqua', 0), adjustments.get('sat_aqua', 0), adjustments.get('lum_aqua', 0)),
+            'blue': (adjustments.get('hue_blue', 0), adjustments.get('sat_blue', 0), adjustments.get('lum_blue', 0)),
+            'purple': (adjustments.get('hue_purple', 0), adjustments.get('sat_purple', 0), adjustments.get('lum_purple', 0)),
+            'magenta': (adjustments.get('hue_magenta', 0), adjustments.get('sat_magenta', 0), adjustments.get('lum_magenta', 0)),
+        }
+        
+        color_ranges = {
+            'red': [(0, 10), (170, 180)],  # HSV hue 0-10, 170-180 (wraps)
+            'orange': [(11, 20)],
+            'yellow': [(21, 35)],
+            'green': [(36, 85)],
+            'aqua': [(86, 110)],
+            'blue': [(111, 140)],
+            'purple': [(141, 155)],
+            'magenta': [(156, 169)],
+        }
+        
+        for color_name, (hue_shift, sat_shift, lum_shift) in hsl_adjustments.items():
+            if hue_shift == 0 and sat_shift == 0 and lum_shift == 0:
+                continue
+            
+            ranges = color_ranges[color_name]
+            mask = np.zeros_like(h, dtype=np.float32)
+            
+            for hue_min, hue_max in ranges:
+                mask_range = ((h >= hue_min) & (h <= hue_max)).astype(np.float32)
+                mask = np.maximum(mask, mask_range)
+            
+            if hue_shift != 0:
+                h = np.where(mask > 0, h + (hue_shift * mask * 0.5), h)
+                h = np.clip(h, 0, 180)
+            
+            if sat_shift != 0:
+                s = np.where(mask > 0, s * (1 + sat_shift / 100.0 * mask), s)
+                s = np.clip(s, 0, 255)
+            
+            if lum_shift != 0:
+                v = np.where(mask > 0, v + (lum_shift * 1.5 * mask), v)
+                v = np.clip(v, 0, 255)
+        
+        # Contrast
         if contrast != 0:
             v = ((v / 255.0 - 0.5) * (1 + contrast) + 0.5) * 255.0
             v = np.clip(v, 0, 255)
         
+        # Clarity (midtone contrast)
+        if clarity != 0:
+            v_blur = cv2.GaussianBlur(v, (0, 0), 10)
+            v = v + (v - v_blur) * clarity
+            v = np.clip(v, 0, 255)
+        
+        # Texture (fine detail contrast)
+        if texture != 0:
+            v_blur = cv2.GaussianBlur(v, (0, 0), 2)
+            v = v + (v - v_blur) * texture * 0.5
+            v = np.clip(v, 0, 255)
+        
+        # Dehaze (increase contrast in hazy areas)
+        if dehaze != 0:
+            v = v * (1 + dehaze * 0.3)
+            v = np.clip(v, 0, 255)
+            s = s * (1 + dehaze * 0.2)
+            s = np.clip(s, 0, 255)
+        
+        # Saturation
         if saturation != 0:
             s = s * (1 + saturation)
             s = np.clip(s, 0, 255)
         
+        # Vibrance (selective saturation)
         if vibrance != 0:
             s_normalized = s / 255.0
             vibrance_mask = 1.0 - s_normalized
             s = s + (vibrance * 100 * vibrance_mask)
             s = np.clip(s, 0, 255)
         
+        # Merge back to RGB
         img_hsv = cv2.merge([h, s, v]).astype(np.uint8)
         img_array = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
         
+        # Calibration adjustments (primary color calibration)
+        cal_red_hue = adjustments.get('cal_red_hue', 0)
+        cal_red_sat = adjustments.get('cal_red_sat', 0)
+        cal_green_hue = adjustments.get('cal_green_hue', 0)
+        cal_green_sat = adjustments.get('cal_green_sat', 0)
+        cal_blue_hue = adjustments.get('cal_blue_hue', 0)
+        cal_blue_sat = adjustments.get('cal_blue_sat', 0)
+        
+        if any([cal_red_hue, cal_red_sat, cal_green_hue, cal_green_sat, cal_blue_hue, cal_blue_sat]):
+            img_hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV).astype(np.float32)
+            h, s, v = cv2.split(img_hsv)
+            
+            # Apply calibration (simplified version)
+            if cal_red_hue != 0 or cal_red_sat != 0:
+                red_mask = ((h < 10) | (h > 170)).astype(np.float32)
+                h = np.where(red_mask > 0, h + cal_red_hue * 0.5, h)
+                s = np.where(red_mask > 0, s * (1 + cal_red_sat / 100.0), s)
+            
+            if cal_green_hue != 0 or cal_green_sat != 0:
+                green_mask = ((h >= 36) & (h <= 85)).astype(np.float32)
+                h = np.where(green_mask > 0, h + cal_green_hue * 0.5, h)
+                s = np.where(green_mask > 0, s * (1 + cal_green_sat / 100.0), s)
+            
+            if cal_blue_hue != 0 or cal_blue_sat != 0:
+                blue_mask = ((h >= 111) & (h <= 140)).astype(np.float32)
+                h = np.where(blue_mask > 0, h + cal_blue_hue * 0.5, h)
+                s = np.where(blue_mask > 0, s * (1 + cal_blue_sat / 100.0), s)
+            
+            h = np.clip(h, 0, 180)
+            s = np.clip(s, 0, 255)
+            img_hsv = cv2.merge([h, s, v]).astype(np.uint8)
+            img_array = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
+        
         img = Image.fromarray(img_array)
         
+        # Sharpness
         if sharpness > 0:
             sharpness_factor = sharpness / 100.0
             img = img.filter(ImageFilter.UnsharpMask(radius=2, percent=int(sharpness_factor * 150), threshold=3))
