@@ -6,7 +6,7 @@ let wizardData = {
     projectId: ''
 };
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'http://localhost:5001';
 
 // Open wizard
 function openProjectWizard() {

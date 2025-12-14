@@ -347,22 +347,28 @@ def get_preset(preset_name):
         return jsonify({'error': str(e)}), 500
 
 @app.route('/project', methods=['POST'])
+@app.route('/project/create', methods=['POST'])
 def create_project():
     """Create new project"""
     try:
         data = request.json
-        project_id = data.get('project_id')
-        project_name = data.get('project_name')
+        project_id = data.get('projectId') or data.get('project_id')
+        album_name = data.get('albumName') or data.get('project_name')
+        file_type = data.get('fileType', '')
         
-        if not project_id or not project_name:
+        if not project_id or not album_name:
             return jsonify({'error': 'Missing project data'}), 400
         
         projects[project_id] = {
             'id': project_id,
-            'name': project_name,
-            'images': []
+            'albumName': album_name,
+            'name': album_name,
+            'fileType': file_type,
+            'images': [],
+            'createdAt': data.get('createdAt')
         }
         
+        logger.info(f"✅ Project created: {project_id} - {album_name}")
         return jsonify({'success': True, 'project': projects[project_id]})
         
     except Exception as e:
@@ -376,7 +382,7 @@ def get_project(project_id):
         return jsonify(projects[project_id])
     return jsonify({'error': 'Project not found'}), 404
 
-def run_server(port=5000):
+def run_server(port=5001):
     """Run the Flask server"""
     logger.info("=" * 50)
     logger.info("🚀 Photexx Backend Server Starting...")

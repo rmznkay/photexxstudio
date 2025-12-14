@@ -8,7 +8,7 @@ remoteMain.initialize();
 
 let mainWindow;
 let backendProcess = null;
-const BACKEND_PORT = 5000;
+const BACKEND_PORT = 5001;
 
 /**
  * Check if port is available

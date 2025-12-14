@@ -17,7 +17,7 @@ try {
     console.log('Remote yüklenemedi (henüz hazır değil):', error.message);
 }
 
-const API_URL = 'http://localhost:5000';
+const API_URL = 'http://localhost:5001';
 console.log('API URL:', API_URL);
 
 // Get project ID
