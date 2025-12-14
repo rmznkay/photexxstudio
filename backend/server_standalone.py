@@ -289,6 +289,7 @@ def upload_file():
         return jsonify({'error': str(e)}), 500
 
 @app.route('/adjust', methods=['POST'])
+@app.route('/process', methods=['POST'])
 def adjust_image():
     """Apply adjustments to image"""
     try:
